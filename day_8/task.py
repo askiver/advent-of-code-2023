@@ -31,7 +31,7 @@ with open('input.txt', 'r') as f:
 
     print(number_of_moves)
 
-# Task 2 Brute force solution
+# Task 2
 # Read file
 with open('input.txt', 'r') as f:
     data = f.readlines()
@@ -54,24 +54,30 @@ with open('input.txt', 'r') as f:
         if state[2] == 'A':
             current_states.append(state)
 
-    print(current_states)
-    current_index = 0
-    number_of_moves = 0
+    loop_lengths = []
 
-    while True:
-        # Get current move
-        current_move = move_list[current_index]
-        # Get next state
-        current_states = [states_dict[state][current_move] for state in current_states]
-        number_of_moves += 1
-        # Get next index
-        current_index += 1
-        if current_index >= len(move_list):
-            current_index = 0
-        # Check if all states end with Z
-        if all(state[2] == 'Z' for state in current_states):
-            break
+    for state in current_states:
+        current_state = state
+
+        print(current_states)
+        current_index = 0
+        number_of_moves = 0
+
+        while True:
+            # Get current move
+            current_move = move_list[current_index]
+            # Get next state
+            current_state = states_dict[current_state][current_move]
+            number_of_moves += 1
+            # Get next index
+            current_index += 1
+            if current_index >= len(move_list):
+                current_index = 0
+            # Check if all states end with Z
+            if current_state[2] == 'Z':
+                loop_lengths.append(number_of_moves)
+                break
+
+    print(loop_lengths)
 
     print(number_of_moves)
-    print(move_list)
-    print(states_dict)
