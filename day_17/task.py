@@ -94,9 +94,13 @@ def cursed_a_star(start, h):
 
     while open_set:
         current = min(open_set, key=lambda x: f_score[x])
-        if current[0] == width - 1 and current[1] == height - 1:
-            return reconstruct_path(came_from, current)
         open_set.remove(current)
+        if current[0] == width - 1 and current[1] == height - 1:
+            # Check that final stretch of solution is valid
+            if current[3] < 4:
+                continue
+            return reconstruct_path(came_from, current)
+
 
         if current[3] < 4:
             directions = [current[2]]
@@ -122,11 +126,11 @@ def cursed_a_star(start, h):
 
 path = a_star((0,0,'right',0), h)
 heat_sum = 0
-for p in path[1:]:
-    heat_sum += data[p[1]][p[0]]
+#for p in path[1:]:
+    #heat_sum += data[p[1]][p[0]]
 
 path = cursed_a_star((0,0,'right',0), h)
-heat_sum = 0
+#heat_sum = 0
 for p in path[1:]:
     heat_sum += data[p[1]][p[0]]
 print(heat_sum)
