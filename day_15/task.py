@@ -32,14 +32,14 @@ for string in data:
     if "=" in string:
         focal_value = parts[1]
         for i, item in enumerate(box_dict[string_value]):
-            if item.startswith(instruction + " "):
+            if item.startswith(instruction):
                 box_dict[string_value][i] = instruction + " " + focal_value
                 break
         else:
             box_dict[string_value].append(instruction + " " + focal_value)
     else:
         for i, item in enumerate(box_dict[string_value]):
-            if item.startswith(instruction + " "):
+            if item.startswith(instruction):
                 box_dict[string_value].pop(i)
                 break
 
