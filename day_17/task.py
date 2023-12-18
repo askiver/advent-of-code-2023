@@ -1,13 +1,7 @@
-import math
-from functools import lru_cache
 from collections import defaultdict
-
+import heapq
 import numpy as np
 from numpy import inf
-
-# set recursion limit to 10000
-import sys
-sys.setrecursionlimit(10000)
 
 # Task 1
 # Read file
@@ -20,7 +14,8 @@ data = [list(map(int, list(line))) for line in data]
 height = len(data)
 width = len(data[0])
 
-print(data)
+data = np.array(data)
+
 direction_mapping = {
     "up": (0, -1),
     "down": (0, 1),
@@ -34,10 +29,10 @@ available_directions = {
     "right": ["right", "up", "down"],
 }
 
-repetition_array = np.zeros((height, width), dtype=int)
 
 def h(current_position):
-    return math.sqrt(abs(current_position[0] - width + 1)**2 + abs(current_position[1] - height + 1)**2)
+    return abs(current_position[0] - width + 1) + abs(current_position[1] - height + 1)
+
 
 def reconstruct_path(came_from, current):
     total_path = [current]
@@ -46,72 +41,40 @@ def reconstruct_path(came_from, current):
         total_path.insert(0, current)
     return total_path
 
-def a_star(start, h):
-    open_set = set()
-    open_set.add(start)
-
-    came_from = {}
-
-    g_score = defaultdict(lambda: inf)
-    g_score[start] = 0
-
-    f_score = defaultdict(lambda: inf)
-    f_score[start] = h(start)
-
-    while open_set:
-        current = min(open_set, key=lambda x: f_score[x])
-        if current[0] == width - 1 and current[1] == height - 1:
-            return reconstruct_path(came_from, current)
-        open_set.remove(current)
-
-        directions = available_directions[current[2]] if current[3] < 3 else available_directions[current[2]][1:]
-        for d in directions:
-            moves = current[3] + 1 if d == current[2] else 1
-            neighbour = (current[0] + direction_mapping[d][0], current[1] + direction_mapping[d][1], d, moves)
-            if neighbour[0] < 0 or neighbour[0] >= width or neighbour[1] < 0 or neighbour[1] >= height:
-                continue
-
-            tentative_gscore = g_score[current] + data[neighbour[1]][neighbour[0]]
-            if tentative_gscore < g_score[neighbour]:
-                came_from[neighbour] = current
-                g_score[neighbour] = tentative_gscore
-                f_score[neighbour] = g_score[neighbour] + h(neighbour)
-                if neighbour not in open_set:
-                    open_set.add(neighbour)
 
 # Task 2
-def cursed_a_star(start, h):
-    open_set = set()
-    open_set.add(start)
+def a_star(least, most):
+    start = [(0, 0, 'right', 0), (0, 0, 'down', 0)]
+    g_score = defaultdict(lambda: inf)
+    f_score = defaultdict(lambda: inf)
+
+    open_set = []
+    for s in start:
+        heapq.heappush(open_set, (h(s), s))
+        g_score[s] = 0
+        f_score[s] = h(s)
 
     came_from = {}
 
-    g_score = defaultdict(lambda: inf)
-    g_score[start] = 0
-
-    f_score = defaultdict(lambda: inf)
-    f_score[start] = h(start)
-
     while open_set:
-        current = min(open_set, key=lambda x: f_score[x])
-        open_set.remove(current)
-        if current[0] == width - 1 and current[1] == height - 1:
+        current = heapq.heappop(open_set)[1]
+        x, y, current_dir, moves = current
+        if x == width - 1 and y == height - 1:
             # Check that final stretch of solution is valid
-            if current[3] < 4:
+            if moves < least:
                 continue
             return reconstruct_path(came_from, current)
 
-
-        if current[3] < 4:
-            directions = [current[2]]
-        elif current[3] < 10:
-            directions = available_directions[current[2]]
+        if moves < least:
+            directions = [current_dir]
+        elif moves < most:
+            directions = available_directions[current_dir]
         else:
-            directions = available_directions[current[2]][1:]
+            directions = available_directions[current_dir][1:]
 
         for d in directions:
-            moves = current[3] + 1 if d == current[2] else 1
-            neighbour = (current[0] + direction_mapping[d][0], current[1] + direction_mapping[d][1], d, moves)
+            moves = moves + 1 if d == current_dir else 1
+            neighbour = (x + direction_mapping[d][0], y + direction_mapping[d][1], d, moves)
             if neighbour[0] < 0 or neighbour[0] >= width or neighbour[1] < 0 or neighbour[1] >= height:
                 continue
 
@@ -121,16 +84,17 @@ def cursed_a_star(start, h):
                 g_score[neighbour] = tentative_gscore
                 f_score[neighbour] = g_score[neighbour] + h(neighbour)
                 if neighbour not in open_set:
-                    open_set.add(neighbour)
+                    heapq.heappush(open_set, (f_score[neighbour], neighbour))
 
 
-path = a_star((0,0,'right',0), h)
+path = a_star(0, 3)
 heat_sum = 0
-#for p in path[1:]:
-    #heat_sum += data[p[1]][p[0]]
+for p in path[1:]:
+    heat_sum += data[p[1]][p[0]]
+print(heat_sum)
 
-path = cursed_a_star((0,0,'right',0), h)
-#heat_sum = 0
+path = a_star(4, 10)
+heat_sum = 0
 for p in path[1:]:
     heat_sum += data[p[1]][p[0]]
 print(heat_sum)
